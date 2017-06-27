@@ -1,10 +1,15 @@
-#include <uWS/uWS.h>
-#include <iostream>
 #include "json.hpp"
-#include <math.h>
 #include "ukf.h"
 #include "tools.h"
 
+using Eigen::MatrixXd;
+using Eigen::VectorXd;
+
+#include <uWS/uWS.h>
+
+#include <cmath>
+#include <iostream>
+#include <vector>
 using namespace std;
 
 // for convenience
@@ -112,10 +117,10 @@ int main()
 
     	  VectorXd estimate(4);
 
-    	  double p_x = ukf.x_(0);
-    	  double p_y = ukf.x_(1);
-    	  double v  = ukf.x_(2);
-    	  double yaw = ukf.x_(3);
+    	  double p_x = ukf.x()(0);
+    	  double p_y = ukf.x()(1);
+    	  double v  = ukf.x()(2);
+    	  double yaw = ukf.x()(3);
 
     	  double v1 = cos(yaw)*v;
     	  double v2 = sin(yaw)*v;

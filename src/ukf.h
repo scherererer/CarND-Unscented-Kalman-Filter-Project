@@ -9,6 +9,46 @@
 class UKF
 {
 public:
+	/**
+	* Constructor
+	*/
+	UKF();
+
+	/**
+	* Destructor
+	*/
+	virtual ~UKF();
+
+	///* state vector: [pos1 pos2 vel_abs yaw_angle yaw_rate] in SI units and rad
+	Eigen::VectorXd const &x () const
+		{ return x_; }
+
+	/**
+	* ProcessMeasurement
+	* @param meas_package The latest measurement data of either radar or laser
+	*/
+	void ProcessMeasurement(MeasurementPackage meas_package);
+
+	/**
+	* Prediction Predicts sigma points, the state, and the state covariance
+	* matrix
+	* @param delta_t Time between k and k+1 in s
+	*/
+	void Prediction(double delta_t);
+
+	/**
+	* Updates the state and the state covariance matrix using a laser measurement
+	* @param meas_package The measurement at k+1
+	*/
+	void UpdateLidar(MeasurementPackage meas_package);
+
+	/**
+	* Updates the state and the state covariance matrix using a radar measurement
+	* @param meas_package The measurement at k+1
+	*/
+	void UpdateRadar(MeasurementPackage meas_package);
+
+private:
 	///* initially set to false, set to true in first call of ProcessMeasurement
 	bool is_initialized_;
 
@@ -51,51 +91,15 @@ public:
 	///* Radar measurement noise standard deviation radius change in m/s
 	double std_radrd_ ;
 
-	///* Weights of sigma points
-	Eigen::VectorXd weights_;
-
 	///* State dimension
 	int n_x_;
 
 	///* Augmented state dimension
 	int n_aug_;
 
+	///* Weights of sigma points
+	Eigen::VectorXd weights_;
+
 	///* Sigma point spreading parameter
 	double lambda_;
-
-
-	/**
-	* Constructor
-	*/
-	UKF();
-
-	/**
-	* Destructor
-	*/
-	virtual ~UKF();
-
-	/**
-	* ProcessMeasurement
-	* @param meas_package The latest measurement data of either radar or laser
-	*/
-	void ProcessMeasurement(MeasurementPackage meas_package);
-
-	/**
-	* Prediction Predicts sigma points, the state, and the state covariance
-	* matrix
-	* @param delta_t Time between k and k+1 in s
-	*/
-	void Prediction(double delta_t);
-
-	/**
-	* Updates the state and the state covariance matrix using a laser measurement
-	* @param meas_package The measurement at k+1
-	*/
-	void UpdateLidar(MeasurementPackage meas_package);
-
-	/**
-	* Updates the state and the state covariance matrix using a radar measurement
-	* @param meas_package The measurement at k+1
-	*/
-	void UpdateRadar(MeasurementPackage meas_package);
 };

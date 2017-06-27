@@ -13,40 +13,30 @@ using namespace std;
 /**
  * Initializes Unscented Kalman filter
  */
-UKF::UKF()
-{
+UKF::UKF() :
+	is_initialized_(false),
 	// if this is false, laser measurements will be ignored (except during init)
-	use_laser_ = true;
-
+	use_laser_(true),
 	// if this is false, radar measurements will be ignored (except during init)
-	use_radar_ = true;
-
+	use_radar_(true),
 	// initial state vector
-	x_ = VectorXd(5);
-
+	x_(5),
 	// initial covariance matrix
-	P_ = MatrixXd(5, 5);
-
+	P_(5, 5),
 	// Process noise standard deviation longitudinal acceleration in m/s^2
-	std_a_ = 30;
-
+	std_a_(30), ///< TODO This looks wildly off ....
 	// Process noise standard deviation yaw acceleration in rad/s^2
-	std_yawdd_ = 30;
-
+	std_yawdd_(30),
 	// Laser measurement noise standard deviation position1 in m
-	std_laspx_ = 0.15;
-
+	std_laspx_(0.15),
 	// Laser measurement noise standard deviation position2 in m
-	std_laspy_ = 0.15;
-
+	std_laspy_(0.15),
 	// Radar measurement noise standard deviation radius in m
-	std_radr_ = 0.3;
-
+	std_radr_(0.3),
 	// Radar measurement noise standard deviation angle in rad
-	std_radphi_ = 0.03;
-
+	std_radphi_(0.03),
 	// Radar measurement noise standard deviation radius change in m/s
-	std_radrd_ = 0.3;
+	std_radrd_(0.3),
 
 	/**
 	TODO:
@@ -55,6 +45,14 @@ UKF::UKF()
 
 	Hint: one or more values initialized above might be wildly off...
 	*/
+	n_x_(5),
+	n_aug_(7),
+	weights_(2*n_aug_+1),
+	lambda_(3 - n_aug_)
+{
+	weights_(0) = lambda_ / (lambda_ + n_aug_);
+	for (unsigned i = 1; i < weights_.rows (); ++i)
+		weights_(i) = 1.0f / (2.0f * (lambda_ + n_aug_));
 }
 
 UKF::~UKF()
