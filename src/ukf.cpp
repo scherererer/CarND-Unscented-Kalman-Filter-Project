@@ -91,6 +91,8 @@ void UKF::ProcessMeasurement(MeasurementPackage const &meas_package)
 	measurements.
 	*/
 
+	cout << meas_package.timestamp_ / 1000000.0 << " S T A R T " << endl;
+
 	if (! is_initialized_)
 	{
 		Initialize (meas_package);
@@ -103,6 +105,7 @@ void UKF::ProcessMeasurement(MeasurementPackage const &meas_package)
 		return;
 
 	double const dt = (meas_package.timestamp_ - time_us_) / 1000000.0;
+	time_us_ = meas_package.timestamp_;
 
 	/// \todo Handle going backwards in time more gracefully
 	if (dt < 0.0)
@@ -126,6 +129,8 @@ void UKF::ProcessMeasurement(MeasurementPackage const &meas_package)
 		UpdateRadar (meas_package);
 		break;
 	}
+
+	cout << " S T O P " << endl;
 }
 
 void UKF::Initialize (MeasurementPackage const &meas_package)
@@ -262,6 +267,7 @@ void UKF::Prediction(double delta_t)
 		// if phi dot is not zero
 		if (fabs (phid) > EPSILON)
 		{
+			cout << "PHID IS GREATER THAN ZERO" << endl;
 			VectorXd t2 = VectorXd (5);
 			t2 << (v / phid) * (sin (phi + phid * delta_t) - sin (phi)),
 			      (v / phid) * (-cos (phi + phid * delta_t) + cos (phi)),
@@ -273,6 +279,7 @@ void UKF::Prediction(double delta_t)
 		}
 		else
 		{
+			cout << "PHID IS ZERO" << endl;
 			VectorXd t2 = VectorXd (5);
 			t2 << v * cos (phi) * delta_t,
 			      v * sin (phi) * delta_t,
@@ -315,6 +322,7 @@ void UKF::UpdateLidar(MeasurementPackage const &meas_package)
 
 	You'll also need to calculate the lidar NIS.
 	*/
+	cout << "UPDATE LIDAR" << endl;
 }
 
 /**
@@ -333,6 +341,8 @@ void UKF::UpdateRadar(MeasurementPackage const &meas_package)
 	*/
 
 	int constexpr n_z = 3;
+
+	cout << "Update radar..." << endl;
 
 	MatrixXd Zsig = MatrixXd(n_z, 2 * n_aug_ + 1);
 	VectorXd z_pred = VectorXd(n_z);
@@ -403,4 +413,5 @@ void UKF::UpdateRadar(MeasurementPackage const &meas_package)
 	zdiff(1) = wrap(zdiff(1));
 	x_ = x_ + K * zdiff;
 	P_ = P_ - (K * S * K.transpose ());
+	cout << "End radar..." << endl;
 }
