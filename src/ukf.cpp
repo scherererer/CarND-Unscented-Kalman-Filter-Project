@@ -35,20 +35,20 @@ UKF::UKF() :
 	use_radar_(true),
 	n_x_(5),
 	n_aug_(7),
-	weights_(2*n_aug_+1),
-	lambda_(3 - n_x_),
-	lambda_aug_(3 - n_aug_),
+	weights_(2 * n_aug_ + 1),
+	lambda_(3 - n_aug_),
 	// initial state vector
 	x_(Eigen::VectorXd (5)),
 	// initial covariance matrix
 	P_(Eigen::MatrixXd (5, 5)),
 	// predicted sigma points matrix
-	Xsig_pred_ (MatrixXd(n_x_, 2 * n_aug_ + 1)),
-	time_us_ (0),
+	Xsig_pred_(MatrixXd(n_x_, 2 * n_aug_ + 1)),
+	time_us_(0),
 	// Process noise standard deviation longitudinal acceleration in m/s^2
 	//std_a_(30), ///< TODO This looks wildly off ....
-	std_a_(3), ///< TODO This is a random guess...
+	std_a_(30), ///< TODO This is a random guess...
 	// Process noise standard deviation yaw acceleration in rad/s^2
+	//std_yawdd_(30),
 	std_yawdd_(30),
 	// Laser measurement noise standard deviation position1 in m
 	std_laspx_(0.15),
@@ -69,9 +69,9 @@ UKF::UKF() :
 	Hint: one or more values initialized above might be wildly off...
 	*/
 {
-	weights_(0) = lambda_aug_ / (lambda_aug_ + n_aug_);
+	weights_(0) = lambda_ / (lambda_ + n_aug_);
 	for (unsigned i = 1; i < weights_.rows (); ++i)
-		weights_(i) = 1.0f / (2.0f * (lambda_aug_ + n_aug_));
+		weights_(i) = 1.0f / (2.0f * (lambda_ + n_aug_));
 }
 
 UKF::~UKF()
@@ -190,23 +190,7 @@ void UKF::Prediction(double delta_t)
 	vector, x_. Predict sigma points, the state, and the state covariance matrix.
 	*/
 
-	/// \todo Generate sigma points
-	/*MatrixXd Xsig = MatrixXd(n_x_, 2 * n_x_ + 1);
-
-	Xsig.col (0) = x_;
-
-	//calculate square root of P
-	MatrixXd const A = P_.llt().matrixL();
-	float const scale = sqrt (lambda_ + n_x_);
-	MatrixXd const sA = scale * A;
-
-	for (unsigned i = 0; i < sA.cols (); ++i)
-	{
-		Xsig.col (i + 1) = x_ + sA.col (i);
-		Xsig.col (i + 1 + sA.cols ()) = x_ - sA.col (i);
-	}*/
-
-	/// \todo Augment points
+	/// \todo Generate augmented sigma points
 	//create augmented mean state
 	VectorXd x_aug = VectorXd(7);
 
@@ -225,18 +209,19 @@ void UKF::Prediction(double delta_t)
 
 	//create augmented sigma points
 	//calculate square root of P
-	MatrixXd const A_aug = P_aug.llt().matrixL();
-	float const scale_aug = sqrt (lambda_aug_ + n_aug_);
-	MatrixXd const sA_aug = scale_aug * A_aug;
+	/// \todo NaN risk here?
+	MatrixXd const A = P_aug.llt().matrixL();
+	float const scale = sqrt(lambda_ + n_aug_);
+	MatrixXd const sA = scale * A;
 
 	MatrixXd Xsig_aug = MatrixXd(n_aug_, 2 * n_aug_ + 1);
 
 	Xsig_aug.col (0) = x_aug;
 
-	for (int i = 0; i < sA_aug.cols (); ++i)
+	for (int i = 0; i < sA.cols (); ++i)
 	{
-		Xsig_aug.col (i + 1) = x_aug + sA_aug.col (i);
-		Xsig_aug.col (i + 1 + n_aug_) = x_aug - sA_aug.col (i);
+		Xsig_aug.col (i + 1) = x_aug + sA.col (i);
+		Xsig_aug.col (i + 1 + n_aug_) = x_aug - sA.col (i);
 	}
 
 	/// \todo Sigma point prediction
@@ -267,7 +252,6 @@ void UKF::Prediction(double delta_t)
 		// if phi dot is not zero
 		if (fabs (phid) > EPSILON)
 		{
-			cout << "PHID IS GREATER THAN ZERO" << endl;
 			VectorXd t2 = VectorXd (5);
 			t2 << (v / phid) * (sin (phi + phid * delta_t) - sin (phi)),
 			      (v / phid) * (-cos (phi + phid * delta_t) + cos (phi)),
@@ -279,7 +263,6 @@ void UKF::Prediction(double delta_t)
 		}
 		else
 		{
-			cout << "PHID IS ZERO" << endl;
 			VectorXd t2 = VectorXd (5);
 			t2 << v * cos (phi) * delta_t,
 			      v * sin (phi) * delta_t,
@@ -368,6 +351,7 @@ void UKF::UpdateRadar(MeasurementPackage const &meas_package)
 		// phi
 		Zsig.col(i)(1) = wrap (atan2 (py, px));
 		// rho-dot
+		/// \todo divide by zero risk?
 		Zsig.col(i)(2) = (px * cos (phi) * v + py * sin (phi) * v) / Zsig.col(i)(0);
 	}
 

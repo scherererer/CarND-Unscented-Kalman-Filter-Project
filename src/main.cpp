@@ -53,6 +53,7 @@ int main()
 
       auto s = hasData(std::string(data));
       if (s != "") {
+        std::cout << "data: '" << s << "'" << std::endl;
 
         auto j = json::parse(s);
 
@@ -119,7 +120,7 @@ int main()
 
           double p_x = ukf.x()(0);
           double p_y = ukf.x()(1);
-          double v  = ukf.x()(2);
+          double v   = ukf.x()(2);
           double yaw = ukf.x()(3);
 
           double v1 = cos(yaw)*v;
@@ -137,18 +138,30 @@ int main()
           json msgJson;
           msgJson["estimate_x"] = p_x;
           msgJson["estimate_y"] = p_y;
-          msgJson["rmse_x"] =  RMSE(0);
-          msgJson["rmse_y"] =  RMSE(1);
+          msgJson["rmse_x"]  = RMSE(0);
+          msgJson["rmse_y"]  = RMSE(1);
           msgJson["rmse_vx"] = RMSE(2);
           msgJson["rmse_vy"] = RMSE(3);
           auto msg = "42[\"estimate_marker\"," + msgJson.dump() + "]";
-          // std::cout << msg << std::endl;
+		  std::cout << p_x << " "
+                    << p_y << " "
+                    << v << " "
+                    << yaw << " "
+                    << v1 << " "
+                    << v2 << " "
+                    << RMSE(0) << " "
+                    << RMSE(1) << " "
+                    << RMSE(2) << " "
+                    << RMSE(3) << " "
+                    << endl;
+          std::cout << "telemetry: '" << msg << "'" << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
 
         }
       } else {
 
         std::string msg = "42[\"manual\",{}]";
+	    std::cout << "NOTELEM: '" << msg << "'" << std::endl;
         ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
       }
     }
@@ -191,90 +204,3 @@ int main()
   }
   h.run();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
