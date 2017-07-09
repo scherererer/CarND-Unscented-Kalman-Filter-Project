@@ -143,7 +143,8 @@ int main()
           msgJson["rmse_vx"] = RMSE(2);
           msgJson["rmse_vy"] = RMSE(3);
           auto msg = "42[\"estimate_marker\"," + msgJson.dump() + "]";
-		  std::cout << p_x << " "
+		  std::cout << "Estimated state: "
+		            << p_x << " "
                     << p_y << " "
                     << v << " "
                     << yaw << " "

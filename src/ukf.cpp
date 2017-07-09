@@ -14,7 +14,7 @@ namespace
 
 float const EPSILON = 0.001f;
 
-float wrap (float a_)
+inline float wrap (float a_)
 {
 	a_ = fmod (a_ + M_PI, 2.0 * M_PI);
 	if (a_ < 0)
@@ -91,8 +91,6 @@ void UKF::ProcessMeasurement(MeasurementPackage const &meas_package)
 	measurements.
 	*/
 
-	cout << meas_package.timestamp_ / 1000000.0 << " S T A R T " << endl;
-
 	if (! is_initialized_)
 	{
 		Initialize (meas_package);
@@ -103,6 +101,8 @@ void UKF::ProcessMeasurement(MeasurementPackage const &meas_package)
 		return;
 	if (! use_radar_ && meas_package.sensor_type_ == MeasurementPackage::RADAR)
 		return;
+
+	cout << meas_package.timestamp_ / 1000000.0 << "Processing Measurement..." << endl;
 
 	double const dt = (meas_package.timestamp_ - time_us_) / 1000000.0;
 	time_us_ = meas_package.timestamp_;
@@ -129,8 +129,6 @@ void UKF::ProcessMeasurement(MeasurementPackage const &meas_package)
 		UpdateRadar (meas_package);
 		break;
 	}
-
-	cout << " S T O P " << endl;
 }
 
 void UKF::Initialize (MeasurementPackage const &meas_package)
@@ -272,12 +270,16 @@ void UKF::Prediction(double delta_t)
 
 			Xsig_pred_.col (i) = x.head (5) + t2 + noise;
 		}
+
+		/// \todo Not sure if this is necessary
+		//Xsig_pred_.col(i)(3) = wrap(Xsig_pred_.col(i)(3));
 	}
 
 	/// \todo Predicted mean and covariance
 	x_.fill (0.0f);
 	for (unsigned i = 0; i < weights_.rows (); ++i)
 		x_ = x_ + (weights_(i) * Xsig_pred_.col(i));
+	/// \todo not sure if this wrapping is necessary
 	//x_(3) = wrap(x_(3));
 	//predict state covariance matrix
 	P_.fill (0.0f);
@@ -325,8 +327,6 @@ void UKF::UpdateRadar(MeasurementPackage const &meas_package)
 
 	int constexpr n_z = 3;
 
-	cout << "Update radar..." << endl;
-
 	MatrixXd Zsig = MatrixXd(n_z, 2 * n_aug_ + 1);
 	VectorXd z_pred = VectorXd(n_z);
 	MatrixXd S = MatrixXd(n_z,n_z);
@@ -335,7 +335,7 @@ void UKF::UpdateRadar(MeasurementPackage const &meas_package)
 	VectorXd z = VectorXd(n_z);
 	z << meas_package.raw_measurements_[0], // p
 		 wrap (meas_package.raw_measurements_[1]), // phi
-		 meas_package.raw_measurements_[1]; // rho-dot
+		 meas_package.raw_measurements_[2]; // rho-dot
 
 
 	for (unsigned i = 0; i < Xsig_pred_.cols (); ++i)
@@ -397,5 +397,4 @@ void UKF::UpdateRadar(MeasurementPackage const &meas_package)
 	zdiff(1) = wrap(zdiff(1));
 	x_ = x_ + K * zdiff;
 	P_ = P_ - (K * S * K.transpose ());
-	cout << "End radar..." << endl;
 }
