@@ -6,7 +6,6 @@ using Eigen::VectorXd;
 
 #include <cmath>
 #include <iostream>
-using std::vector;
 using namespace std;
 
 namespace
@@ -46,7 +45,7 @@ UKF::UKF() :
 	time_us_(0),
 	// Process noise standard deviation longitudinal acceleration in m/s^2
 	//std_a_(30), ///< TODO This looks wildly off ....
-	std_a_(30), ///< TODO This is a random guess...
+	std_a_(10), ///< TODO This is a random guess...
 	// Process noise standard deviation yaw acceleration in rad/s^2
 	//std_yawdd_(30),
 	std_yawdd_(30),
@@ -214,6 +213,10 @@ void UKF::Prediction(double delta_t)
 	//calculate square root of P
 	/// \todo NaN risk here?
 	MatrixXd const A = P_aug.llt().matrixL();
+	for (unsigned i = 0; i < A.rows (); ++i)
+		for (unsigned j = 0; j < A.cols (); ++j)
+			if (isnan (A(i,j)))
+				cerr << "NAN NAN NAN" << endl;
 	float const scale = sqrt(lambda_ + n_aug_);
 	MatrixXd const sA = scale * A;
 
@@ -330,9 +333,6 @@ void UKF::UpdateRadar(MeasurementPackage const &meas_package)
 	int constexpr n_z = 3;
 
 	MatrixXd Zsig = MatrixXd(n_z, 2 * n_aug_ + 1);
-	VectorXd z_pred = VectorXd::Zero(n_z);
-	MatrixXd S = MatrixXd::Zero(n_z,n_z);
-	MatrixXd Tc = MatrixXd::Zero(n_x_, n_z);
 
 	VectorXd z = VectorXd(n_z);
 	z << meas_package.raw_measurements_[0], // p
@@ -354,15 +354,20 @@ void UKF::UpdateRadar(MeasurementPackage const &meas_package)
 		Zsig.col(i)(1) = wrap (atan2 (py, px));
 		// rho-dot
 		/// \todo divide by zero risk?
+		if (fabs(Zsig.col(i)(0)) < EPSILON)
+			cerr << "DIVIDE BY ZERO" << endl;
 		Zsig.col(i)(2) = (px * cos (phi) * v + py * sin (phi) * v) / Zsig.col(i)(0);
 	}
 
 	//calculate mean predicted measurement
+	VectorXd z_pred = VectorXd::Zero(n_z);
+
 	for (unsigned i = 0; i < weights_.rows (); ++i)
 		z_pred = z_pred + (weights_(i) * Zsig.col(i));
 	z_pred(1) = wrap (z_pred (1));
 
 	//calculate measurement covariance matrix S
+	MatrixXd S = MatrixXd::Zero(n_z,n_z);
 	MatrixXd R = MatrixXd::Zero(3, 3);
 
 	R << std_radr_ * std_radr_, 0, 0,
@@ -380,6 +385,8 @@ void UKF::UpdateRadar(MeasurementPackage const &meas_package)
 	}
 
 	//calculate cross correlation matrix
+	MatrixXd Tc = MatrixXd::Zero(n_x_, n_z);
+
 	for (unsigned i = 0; i < weights_.rows (); ++i)
 	{
 		VectorXd zdiff = Zsig.col (i) - z_pred;

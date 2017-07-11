@@ -43,7 +43,9 @@ int main()
   vector<VectorXd> estimations;
   vector<VectorXd> ground_truth;
 
-  h.onMessage([&ukf,&tools,&estimations,&ground_truth](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+  h.onMessage([&ukf,&tools,&estimations,&ground_truth]
+              (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+	std::cout << "\n";
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -53,7 +55,7 @@ int main()
 
       auto s = hasData(std::string(data));
       if (s != "") {
-        std::cout << "data: '" << s << "'" << std::endl;
+        std::cout << "data: '" << s << "'\n";
 
         auto j = json::parse(s);
 
@@ -153,19 +155,20 @@ int main()
                     << RMSE(0) << " "
                     << RMSE(1) << " "
                     << RMSE(2) << " "
-                    << RMSE(3) << " "
-                    << endl;
-          std::cout << "telemetry: '" << msg << "'" << std::endl;
+                    << RMSE(3) << "\n";
+          std::cout << "telemetry: '" << msg << "'\n";
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
 
         }
       } else {
 
         std::string msg = "42[\"manual\",{}]";
-	    std::cout << "NOTELEM: '" << msg << "'" << std::endl;
+	    std::cout << "NOTELEM: '" << msg << "'\n";
         ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
       }
     }
+
+	std::cout << std::endl;
 
   });
 
