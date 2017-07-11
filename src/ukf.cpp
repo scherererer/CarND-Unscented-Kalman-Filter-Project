@@ -38,11 +38,11 @@ UKF::UKF() :
 	weights_(2 * n_aug_ + 1),
 	lambda_(3 - n_aug_),
 	// initial state vector
-	x_(Eigen::VectorXd (5)),
+	x_(5),
 	// initial covariance matrix
-	P_(Eigen::MatrixXd (5, 5)),
+	P_(Eigen::MatrixXd::Identity (5, 5)),
 	// predicted sigma points matrix
-	Xsig_pred_(MatrixXd(n_x_, 2 * n_aug_ + 1)),
+	Xsig_pred_(MatrixXd::Zero(n_x_, 2 * n_aug_ + 1)),
 	time_us_(0),
 	// Process noise standard deviation longitudinal acceleration in m/s^2
 	//std_a_(30), ///< TODO This looks wildly off ....
@@ -102,7 +102,7 @@ void UKF::ProcessMeasurement(MeasurementPackage const &meas_package)
 	if (! use_radar_ && meas_package.sensor_type_ == MeasurementPackage::RADAR)
 		return;
 
-	cout << meas_package.timestamp_ / 1000000.0 << "Processing Measurement..." << endl;
+	cout << meas_package.timestamp_ / 1000000.0 << " Processing Measurement..." << endl;
 
 	double const dt = (meas_package.timestamp_ - time_us_) / 1000000.0;
 	time_us_ = meas_package.timestamp_;
@@ -134,6 +134,12 @@ void UKF::ProcessMeasurement(MeasurementPackage const &meas_package)
 void UKF::Initialize (MeasurementPackage const &meas_package)
 {
 	time_us_ = meas_package.timestamp_;
+	P_.fill(0.0f);
+	P_(0,0) = 1; // x
+	P_(1,1) = 1; // y
+	P_(2,2) = 1000; // vel
+	P_(3,3) = 1000; // yaw
+	P_(4,4) = 1000; // yaw rate
 
 	switch (meas_package.sensor_type_)
 	{
@@ -190,7 +196,7 @@ void UKF::Prediction(double delta_t)
 
 	/// \todo Generate augmented sigma points
 	//create augmented mean state
-	VectorXd x_aug = VectorXd(7);
+	VectorXd x_aug = VectorXd::Zero(7);
 
 	x_aug.head(5) = x_;
 	x_aug(5) = 0.0f;
@@ -198,9 +204,8 @@ void UKF::Prediction(double delta_t)
 	// mean of process noise is 0 so nothing to do
 
 	//create augmented state covariance
-	MatrixXd P_aug = MatrixXd(7, 7);
+	MatrixXd P_aug = MatrixXd::Zero(7, 7);
 
-	P_aug.fill(0.0f);
 	P_aug.topLeftCorner(5, 5) = P_;
 	P_aug(5,5) = std_a_ * std_a_;
 	P_aug(6,6) = std_yawdd_ * std_yawdd_;
@@ -221,9 +226,6 @@ void UKF::Prediction(double delta_t)
 		Xsig_aug.col (i + 1) = x_aug + sA.col (i);
 		Xsig_aug.col (i + 1 + n_aug_) = x_aug - sA.col (i);
 	}
-
-	/// \todo Sigma point prediction
-	Xsig_pred_ = MatrixXd(n_x_, 2 * n_aug_ + 1);
 
 	//predict sigma points
 	//avoid division by zero
@@ -328,9 +330,9 @@ void UKF::UpdateRadar(MeasurementPackage const &meas_package)
 	int constexpr n_z = 3;
 
 	MatrixXd Zsig = MatrixXd(n_z, 2 * n_aug_ + 1);
-	VectorXd z_pred = VectorXd(n_z);
-	MatrixXd S = MatrixXd(n_z,n_z);
-	MatrixXd Tc = MatrixXd(n_x_, n_z);
+	VectorXd z_pred = VectorXd::Zero(n_z);
+	MatrixXd S = MatrixXd::Zero(n_z,n_z);
+	MatrixXd Tc = MatrixXd::Zero(n_x_, n_z);
 
 	VectorXd z = VectorXd(n_z);
 	z << meas_package.raw_measurements_[0], // p
@@ -361,7 +363,8 @@ void UKF::UpdateRadar(MeasurementPackage const &meas_package)
 	z_pred(1) = wrap (z_pred (1));
 
 	//calculate measurement covariance matrix S
-	MatrixXd R = MatrixXd (3, 3);
+	MatrixXd R = MatrixXd::Zero(3, 3);
+
 	R << std_radr_ * std_radr_, 0, 0,
 	     0, std_radphi_ * std_radphi_, 0,
 	     0, 0, std_radrd_ * std_radrd_;
