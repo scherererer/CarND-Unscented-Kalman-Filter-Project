@@ -57,10 +57,8 @@ UKF::UKF() :
 	Xsig_pred_(MatrixXd::Zero(n_x_, 2 * n_aug_ + 1)),
 	time_us_(0),
 	// Process noise standard deviation longitudinal acceleration in m/s^2
-	//std_a_(30), ///< TODO This looks wildly off ....
-	std_a_(10), ///< TODO This is a random guess...
+	std_a_(2),
 	// Process noise standard deviation yaw acceleration in rad/s^2
-	//std_yawdd_(30),
 	std_yawdd_(1),
 	// Laser measurement noise standard deviation position1 in m
 	std_laspx_(0.15),
@@ -148,8 +146,10 @@ void UKF::Initialize (MeasurementPackage const &meas_package)
 	P_(0,0) = 1; // x
 	P_(1,1) = 1; // y
 	P_(2,2) = 10; // vel
-	P_(3,3) = 10; // yaw
-	P_(4,4) = 10; // yaw rate
+	// Yaw can't possibly be off by more than M_PI.
+	P_(3,3) = M_PI; // yaw
+	// Can't imagine yaw rate being greater than M_PI rad/s
+	P_(4,4) = M_PI; // yaw rate
 
 	switch (meas_package.sensor_type_)
 	{
