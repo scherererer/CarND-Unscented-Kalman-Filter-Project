@@ -24,7 +24,7 @@ VectorXd Tools::CalculateRMSE(vector<VectorXd> const &estimations,
 	* Calculate the RMSE here.
 	*/
 
-	rmse_ << 0,0,0,0;
+	rmse_.fill (0.0);
 
 	if (estimations.empty () || ground_truth.empty ())
     {

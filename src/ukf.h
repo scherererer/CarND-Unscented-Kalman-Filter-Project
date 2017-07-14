@@ -52,6 +52,9 @@ private:
 	*/
 	void UpdateRadar(MeasurementPackage const &meas_package);
 
+	/// \brief Dump state of x_ for debugging
+	void dumpState (std::string const &prefix_);
+
 	///* initially set to false, set to true in first call of ProcessMeasurement
 	bool is_initialized_;
 
