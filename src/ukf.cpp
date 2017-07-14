@@ -58,7 +58,7 @@ UKF::UKF() :
 	time_us_(0),
 	// Process noise standard deviation longitudinal acceleration in m/s^2
 	//std_a_(30), ///< TODO This looks wildly off ....
-	std_a_(30), ///< TODO This is a random guess...
+	std_a_(10), ///< TODO This is a random guess...
 	// Process noise standard deviation yaw acceleration in rad/s^2
 	//std_yawdd_(30),
 	std_yawdd_(1),
@@ -147,9 +147,9 @@ void UKF::Initialize (MeasurementPackage const &meas_package)
 	P_.fill(0.0f);
 	P_(0,0) = 1; // x
 	P_(1,1) = 1; // y
-	P_(2,2) = 100; // vel
-	P_(3,3) = 100; // yaw
-	P_(4,4) = 100; // yaw rate
+	P_(2,2) = 10; // vel
+	P_(3,3) = 10; // yaw
+	P_(4,4) = 10; // yaw rate
 
 	switch (meas_package.sensor_type_)
 	{
