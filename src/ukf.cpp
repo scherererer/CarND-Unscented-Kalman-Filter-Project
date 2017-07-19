@@ -130,7 +130,7 @@ void UKF::Initialize (MeasurementPackage const &meas_package)
 	P_.fill(0.0f);
 	P_(0,0) = 1; // x
 	P_(1,1) = 1; // y
-	P_(2,2) = 10; // vel
+	P_(2,2) = 15; // vel
 	// Yaw can't possibly be off by more than M_PI.
 	P_(3,3) = M_PI; // yaw
 	// Can't imagine yaw rate being greater than M_PI rad/s
