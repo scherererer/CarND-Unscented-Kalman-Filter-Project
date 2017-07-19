@@ -52,9 +52,6 @@ private:
 	*/
 	void UpdateRadar(MeasurementPackage const &meas_package);
 
-	/// \brief Dump state of x_ for debugging
-	void dumpState (std::string const &prefix_);
-
 	///* initially set to false, set to true in first call of ProcessMeasurement
 	bool is_initialized_;
 
@@ -107,5 +104,5 @@ private:
 	double const std_radphi_;
 
 	///* Radar measurement noise standard deviation radius change in m/s
-	double const std_radrd_ ;
+	double const std_radrd_;
 };
