@@ -70,14 +70,6 @@ UKF::UKF() :
 	std_radphi_(0.03),
 	// Radar measurement noise standard deviation radius change in m/s
 	std_radrd_(0.3)
-
-	/**
-	TODO:
-
-	Complete the initialization. See ukf.h for other member properties.
-
-	Hint: one or more values initialized above might be wildly off...
-	*/
 {
 	weights_(0) = lambda_ / (lambda_ + n_aug_);
 	for (unsigned i = 1; i < weights_.rows (); ++i)
@@ -94,13 +86,6 @@ UKF::~UKF()
  */
 void UKF::ProcessMeasurement(MeasurementPackage const &meas_package)
 {
-	/**
-	TODO:
-
-	Complete this function! Make sure you switch between lidar and radar
-	measurements.
-	*/
-
 	if (! is_initialized_)
 	{
 		Initialize (meas_package);
@@ -252,7 +237,7 @@ void UKF::Prediction(double delta_t)
 		noise << 0.5f * delta_t * delta_t * cos (phi) * va,
 				 0.5f * delta_t * delta_t * sin (phi) * va,
 				 delta_t * va,
-				 0.5f * delta_t * delta_t * vphidd, ///< \todo not sure if I should wrap
+				 0.5f * delta_t * delta_t * vphidd,
 				 delta_t * vphidd;
 
 		// if phi dot is not zero
@@ -306,15 +291,6 @@ void UKF::Prediction(double delta_t)
  */
 void UKF::UpdateLidar(MeasurementPackage const &meas_package)
 {
-	/**
-	TODO:
-
-	Complete this function! Use lidar data to update the belief about the object's
-	position. Modify the state vector, x_, and covariance, P_.
-
-	You'll also need to calculate the lidar NIS.
-	*/
-
 	int constexpr n_z = 2;
 
 	VectorXd z = VectorXd (n_z);
@@ -393,15 +369,6 @@ void UKF::UpdateLidar(MeasurementPackage const &meas_package)
  */
 void UKF::UpdateRadar(MeasurementPackage const &meas_package)
 {
-	/**
-	TODO:
-
-	Complete this function! Use radar data to update the belief about the object's
-	position. Modify the state vector, x_, and covariance, P_.
-
-	You'll also need to calculate the radar NIS.
-	*/
-
 	int constexpr n_z = 3;
 
 	MatrixXd Zsig = MatrixXd(n_z, 2 * n_aug_ + 1);

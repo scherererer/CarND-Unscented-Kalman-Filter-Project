@@ -45,7 +45,6 @@ int main()
 
   h.onMessage([&ukf,&tools,&estimations,&ground_truth]
               (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
-	std::cout << "\n";
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -55,8 +54,6 @@ int main()
 
       auto s = hasData(std::string(data));
       if (s != "") {
-        std::cout << "data: '" << s << "'\n";
-
         auto j = json::parse(s);
 
         std::string event = j[0].get<std::string>();
@@ -145,30 +142,15 @@ int main()
           msgJson["rmse_vx"] = RMSE(2);
           msgJson["rmse_vy"] = RMSE(3);
           auto msg = "42[\"estimate_marker\"," + msgJson.dump() + "]";
-		  std::cout << "Estimated state: "
-		            << p_x << " "
-                    << p_y << " "
-                    << v << " "
-                    << yaw << " "
-                    << v1 << " "
-                    << v2 << " "
-                    << RMSE(0) << " "
-                    << RMSE(1) << " "
-                    << RMSE(2) << " "
-                    << RMSE(3) << "\n";
-          std::cout << "telemetry: '" << msg << "'\n";
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
 
         }
       } else {
 
         std::string msg = "42[\"manual\",{}]";
-	    std::cout << "NOTELEM: '" << msg << "'\n";
         ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
       }
     }
-
-	std::cout << std::endl;
 
   });
 
