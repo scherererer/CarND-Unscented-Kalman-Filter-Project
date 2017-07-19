@@ -368,8 +368,11 @@ void UKF::UpdateLidar(MeasurementPackage const &meas_package)
 
 		Tc = Tc + (weights_ (i) * xdiff * zdiff.transpose ());
 	}
+
+	MatrixXd const Sinv = S.inverse ();
+
 	//calculate Kalman gain K;
-	MatrixXd const K = Tc * S.inverse ();
+	MatrixXd const K = Tc * Sinv;
 	//update state mean and covariance matrix
 	VectorXd zdiff = z - z_pred;
 
@@ -378,6 +381,10 @@ void UKF::UpdateLidar(MeasurementPackage const &meas_package)
 	/// \note I'm doing this but it feels like I'm covering something else up
 	x_(3) = wrap(x_(3));
 	P_ = P_ - (K * S * K.transpose ());
+
+	// Calculate NIS
+	double const nis = zdiff.transpose () * Sinv * zdiff;
+	cout << "LIDAR_NIS " << nis << "\n";
 }
 
 /**
@@ -466,8 +473,10 @@ void UKF::UpdateRadar(MeasurementPackage const &meas_package)
 
 		Tc = Tc + (weights_ (i) * xdiff * zdiff.transpose ());
 	}
+
+	MatrixXd const Sinv = S.inverse ();
 	//calculate Kalman gain K;
-	MatrixXd const K = Tc * S.inverse ();
+	MatrixXd const K = Tc * Sinv;
 	//update state mean and covariance matrix
 	VectorXd zdiff = z - z_pred;
 
@@ -476,4 +485,8 @@ void UKF::UpdateRadar(MeasurementPackage const &meas_package)
 	/// \note I'm doing this but it feels like I'm covering something else up
 	x_(3) = wrap(x_(3));
 	P_ = P_ - (K * S * K.transpose ());
+
+	// Calculate NIS
+	double const nis = zdiff.transpose () * Sinv * zdiff;
+	cout << "RADAR_NIS " << nis << "\n";
 }
